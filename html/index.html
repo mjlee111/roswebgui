@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ROS Web Interface</title>
+    <style>
+        #image {
+            max-width: 100%;
+            height: auto;
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        button {
+            margin-right: 10px;
+        }
+        select {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ROS Web Interface</h1>
+    
+    <div>
+        <h2>Select Image Topic</h2>
+        <select id="topicSelector">
+            <option value="">Select a topic</option>
+        </select>
+        <h2>Image Viewer</h2>
+        <img id="image" src="" alt="ROS Image" />
+    </div>
+    
+    <div id="controls">
+        <button id="publishButton1">Publish Message 1</button>
+        <button id="publishButton2">Publish Message 2</button>
+    </div>
+    
+    <script>
+        // Function to load a script dynamically
+        function loadScript(src, onLoad, onError) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = onLoad;
+            script.onerror = onError;
+            document.head.appendChild(script);
+        }
+
+        // Load the ROSLIB library
+        loadScript('js/roslib.min.js', 
+            function() {
+                console.log('roslib.min.js loaded successfully.');
+                initROSInterface();
+            },
+            function() {
+                console.error('Failed to load roslib.min.js.');
+            }
+        );
+
+        // Initialize the ROS interface after loading the script
+        function initROSInterface() {
+            // Connect to ROS
+            var ros = new ROSLIB.Ros({
+                url : 'ws://localhost:9090'
+            });
+
+            ros.on('connection', function() {
+                console.log('Connected to websocket server.');
+            });
+
+            ros.on('error', function(error) {
+                console.log('Error connecting to websocket server: ', error);
+            });
+
+            ros.on('close', function() {
+                console.log('Connection to websocket server closed.');
+            });
+
+            // Get a list of available topics and populate the selector
+            function populateTopicSelector() {
+                var topicSelector = document.getElementById('topicSelector');
+
+                ros.getTopics(function(topics) {
+                    var imageTopics = topics.filter(function(topic) {
+                        return topic.message_type === 'sensor_msgs/Image';
+                    });
+
+                    imageTopics.forEach(function(topic) {
+                        var option = document.createElement('option');
+                        option.value = topic.name;
+                        option.text = topic.name;
+                        topicSelector.add(option);
+                    });
+                });
+            }
+
+            // Function to handle image data
+            function handleImage(message) {
+                var img = document.getElementById('image');
+                var base64String = "data:image/jpeg;base64," + message.data;
+                img.src = base64String;
+            }
+
+            // Subscribe to selected image topic
+            function subscribeToTopic(topicName) {
+                if (imageTopic) {
+                    imageTopic.unsubscribe();
+                }
+
+                imageTopic = new ROSLIB.Topic({
+                    ros : ros,
+                    name : topicName,
+                    messageType : 'sensor_msgs/Image'
+                });
+
+                imageTopic.subscribe(function(message) {
+                    handleImage(message);
+                });
+            }
+
+            // Get the topic selector and set up event listener
+            var topicSelector = document.getElementById('topicSelector');
+            var imageTopic = null;
+
+            topicSelector.addEventListener('change', function() {
+                var selectedTopic = topicSelector.value;
+                if (selectedTopic) {
+                    subscribeToTopic(selectedTopic);
+                }
+            });
+
+            // Create publishers for buttons
+            var publisher1 = new ROSLIB.Topic({
+                ros : ros,
+                name : '/topic1',
+                messageType : 'std_msgs/String'
+            });
+
+            var publisher2 = new ROSLIB.Topic({
+                ros : ros,
+                name : '/topic2',
+                messageType : 'std_msgs/String'
+            });
+
+            // Publish a message when the first button is clicked
+            document.getElementById('publishButton1').addEventListener('click', function() {
+                var message = new ROSLIB.Message({
+                    data : 'Message from Button 1'
+                });
+                publisher1.publish(message);
+            });
+
+            // Publish a message when the second button is clicked
+            document.getElementById('publishButton2').addEventListener('click', function() {
+                var message = new ROSLIB.Message({
+                    data : 'Message from Button 2'
+                });
+                publisher2.publish(message);
+            });
+
+            // Create a publisher for the /http/status topic
+            var statusPublisher = new ROSLIB.Topic({
+                ros : ros,
+                name : '/http/status',
+                messageType : 'std_msgs/Bool'
+            });
+
+            statusPublisher.on('error', function(error) {
+                console.log('Error publishing message: ', error);
+            });
+
+            // Publish true to /http/status every 1 second
+            setInterval(function() {
+                var message = new ROSLIB.Message({
+                    data : true
+                });
+                statusPublisher.publish(message);
+            }, 1000);
+
+            // Populate the topic selector when the page loads
+            populateTopicSelector();
+        }
+    </script>
+</body>
+</html>
