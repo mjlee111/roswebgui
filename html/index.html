@@ -3,40 +3,161 @@
 <head>
     <title>ROS Web Interface</title>
     <base href="/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Light Mode Styles */
+        body.light-mode {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode #imageContainer, body.dark-mode #controls {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+        }
+
+        #themeToggleButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+        }
+        
+        #themeToggleButton i {
+            margin-right: 8px;
+        }
+
+        .draggable {
+            cursor: move;
+        }
+
+        /* Logo Styles */
+        #logo {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 100px;
+            height: 100px;
+        }
+
         #image {
             max-width: 100%;
             height: auto;
+            width: auto;
+            margin-bottom: 10px;
         }
-        #controls {
-            margin-top: 20px;
-        }
+        
         button {
-            margin-right: 10px;
+            padding: auto;
+            font-size: 14px;
         }
+        
         select {
             margin-bottom: 10px;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        #imageContainer {
+            top: 80px;
+            left: 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            top: 65px;
+            left: 290px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+        }
+
+         /* Media Queries */
+         @media (max-width: 600px) {
+            #imageContainer, #controls {
+                width: 90%;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            
+            select {
+                padding: 4px;
+                font-size: 12px;
+            }
         }
     </style>
     <link rel="icon" href="data:,"> <!-- Placeholder favicon -->
 </head>
-<body>
+
+<body class="dark-mode">
     <h1>ROS Web Interface</h1>
+
+    <div id="themeToggleButton">
+        <i id="themeIcon" class="fas fa-sun"></i> <!-- Default icon for light mode -->
+        GUI Theme
+    </div>
     
-    <div>
-        <h2>Select Image Topic</h2>
+    <div id="imageContainer" class="draggable">
         <select id="topicSelector">
             <option value="">IMG 1 Topic</option>
         </select>
         <h2>IMG1</h2>
         <img id="image" src="" alt="ROS Image" />
     </div>
-    
-    <div id="controls">
-        <button id="publishButton1">Publish Message 1</button>
-        <button id="publishButton2">Publish Message 2</button>
+
+    <div id="controls" class="draggable">
+        <button id="publishButton1">START</button>
+        <button id="publishButton2">STOP</button>
     </div>
-    
+
+    <img id="logo" src="./resources/img/intelligence.png" alt="Logo">
+
     <script>
         // Function to load a script dynamically
         function loadScript(src, onLoad, onError) {
@@ -181,6 +302,85 @@
             // Populate the topic selector when the page loads
             populateTopicSelector();
         }
+
+        // Make an element draggable
+        // Make an element draggable and ensure it doesn't overlap with other draggable elements
+function makeDraggable(element) {
+    var offsetX, offsetY;
+    var elements = Array.from(document.querySelectorAll('.draggable'));
+    
+    element.addEventListener('mousedown', function(event) {
+        offsetX = event.clientX - element.getBoundingClientRect().left;
+        offsetY = event.clientY - element.getBoundingClientRect().top;
+        document.addEventListener('mousemove', moveElement);
+        document.addEventListener('mouseup', stopMovingElement);
+    });
+
+    function moveElement(event) {
+        var newLeft = event.clientX - offsetX;
+        var newTop = event.clientY - offsetY;
+
+        // Check for overlap with other elements
+        var overlap = false;
+        elements.forEach(function(otherElement) {
+            if (otherElement !== element) {
+                var otherRect = otherElement.getBoundingClientRect();
+                var elementRect = {
+                    top: newTop,
+                    left: newLeft,
+                    bottom: newTop + element.offsetHeight,
+                    right: newLeft + element.offsetWidth
+                };
+                
+                if (elementRect.left < otherRect.right &&
+                    elementRect.right > otherRect.left &&
+                    elementRect.top < otherRect.bottom &&
+                    elementRect.bottom > otherRect.top) {
+                    overlap = true;
+                }
+            }
+        });
+
+        // Update position only if there is no overlap
+        if (!overlap) {
+            element.style.left = newLeft + 'px';
+            element.style.top = newTop + 'px';
+        }
+    }
+
+    function stopMovingElement() {
+        document.removeEventListener('mousemove', moveElement);
+        document.removeEventListener('mouseup', stopMovingElement);
+    }
+}
+
+// Initialize draggable functionality
+document.querySelectorAll('.draggable').forEach(function(element) {
+    makeDraggable(element);
+});
+
+
+        // Initialize draggable functionality
+        document.querySelectorAll('.draggable').forEach(function(element) {
+            makeDraggable(element);
+        });
+
+        // Toggle dark mode
+        document.getElementById('themeToggleButton').addEventListener('click', function() {
+            var body = document.body;
+            var themeIcon = document.getElementById('themeIcon');
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                body.classList.add('dark-mode');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                body.classList.remove('dark-mode');
+                body.classList.add('light-mode');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        });
     </script>
 </body>
 </html>
