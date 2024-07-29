@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>ROS Web Interface</title>
+    <base href="/">
     <style>
         #image {
             max-width: 100%;
@@ -17,6 +18,7 @@
             margin-bottom: 10px;
         }
     </style>
+    <link rel="icon" href="data:,"> <!-- Placeholder favicon -->
 </head>
 <body>
     <h1>ROS Web Interface</h1>
@@ -24,9 +26,9 @@
     <div>
         <h2>Select Image Topic</h2>
         <select id="topicSelector">
-            <option value="">Select a topic</option>
+            <option value="">IMG 1 Topic</option>
         </select>
-        <h2>Image Viewer</h2>
+        <h2>IMG1</h2>
         <img id="image" src="" alt="ROS Image" />
     </div>
     
@@ -46,7 +48,7 @@
         }
 
         // Load the ROSLIB library
-        loadScript('js/roslib.min.js', 
+        loadScript('./js/roslib.min.js', 
             function() {
                 console.log('roslib.min.js loaded successfully.');
                 initROSInterface();
@@ -80,14 +82,14 @@
                 var topicSelector = document.getElementById('topicSelector');
 
                 ros.getTopics(function(topics) {
-                    var imageTopics = topics.filter(function(topic) {
-                        return topic.message_type === 'sensor_msgs/Image';
+                    var imageTopics = topics.topics.filter(function(topic, index) {
+                        return topics.types[index] === 'sensor_msgs/Image';
                     });
 
                     imageTopics.forEach(function(topic) {
                         var option = document.createElement('option');
-                        option.value = topic.name;
-                        option.text = topic.name;
+                        option.value = topic;
+                        option.text = topic;
                         topicSelector.add(option);
                     });
                 });
