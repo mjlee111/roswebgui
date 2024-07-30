@@ -1,386 +1,131 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ROS Web Interface</title>
-    <base href="/">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        /* Light Mode Styles */
-        body.light-mode {
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        /* Dark Mode Styles */
-        body.dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode #imageContainer, body.dark-mode #controls {
-            background-color: #1e1e1e;
-            border: 1px solid #333;
-        }
-
-        #themeToggleButton {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            cursor: pointer;
-            background-color: #ddd;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1001;
-        }
-        
-        #themeToggleButton i {
-            margin-right: 8px;
-        }
-
-        .draggable {
-            cursor: move;
-        }
-
-        /* Logo Styles */
-        #logo {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 100px;
-            height: 100px;
-        }
-
-        #image {
-            max-width: 100%;
-            height: auto;
-            width: auto;
-            margin-bottom: 10px;
-        }
-        
-        button {
-            padding: auto;
-            font-size: 14px;
-        }
-        
-        select {
-            margin-bottom: 10px;
-            padding: 5px;
-            font-size: 14px;
-        }
-
-        #imageContainer {
-            top: 80px;
-            left: 20px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        #controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            top: 65px;
-            left: 290px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1000;
-        }
-
-         /* Media Queries */
-         @media (max-width: 600px) {
-            #imageContainer, #controls {
-                width: 90%;
-            }
-
-            button {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-            
-            select {
-                padding: 4px;
-                font-size: 12px;
-            }
-        }
-    </style>
-    <link rel="icon" href="data:,"> <!-- Placeholder favicon -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.65, user-scalable=yes">
+    <title>ROS Web GUI</title>
+    <head>WEB ROBOT CONTROLLER</head>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="js/roslib.min.js"></script>
+    <script type="text/javascript" src="js/base.js"></script>
+    <script type="text/javascript" src="js/ros.js"></script>
 </head>
 
-<body class="dark-mode">
-    <h1>ROS Web Interface</h1>
+<body onload="init(); init_ros();">
+    <table id="server_table" style="text-align: left; width: 100%;">
+        <tbody>
+            <tr>
+                <td colspan="2" width="100%">
+                    <div style="white-space: nowrap; vertical-align: middle; text-align: center; margin-left: 10px;">
+                        Server Hostname or IP: 
+                        <input type="text" id="rosbridgeHost" value="">&nbsp; 
+                        Port: 
+                        <input type="text" id="rosbridgePort" size="5" value="">&nbsp;
+                        <input type="button" id="rosbridgeConnect" size="5" value="connect"/>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-    <div id="themeToggleButton">
-        <i id="themeIcon" class="fas fa-sun"></i> <!-- Default icon for light mode -->
-        GUI Theme
-    </div>
-    
-    <div id="imageContainer" class="draggable">
-        <select id="topicSelector">
-            <option value="">IMG 1 Topic</option>
-        </select>
-        <h2>IMG1</h2>
-        <img id="image" src="" alt="ROS Image" />
-    </div>
-
-    <div id="controls" class="draggable">
-        <button id="publishButton1">START</button>
-        <button id="publishButton2">STOP</button>
-    </div>
-
-    <img id="logo" src="./resources/img/intelligence.png" alt="Logo">
-
-    <script>
-        // Function to load a script dynamically
-        function loadScript(src, onLoad, onError) {
-            var script = document.createElement('script');
-            script.src = src;
-            script.onload = onLoad;
-            script.onerror = onError;
-            document.head.appendChild(script);
-        }
-
-        // Load the ROSLIB library
-        loadScript('./js/roslib.min.js', 
-            function() {
-                console.log('roslib.min.js loaded successfully.');
-                initROSInterface();
-            },
-            function() {
-                console.error('Failed to load roslib.min.js.');
-            }
-        );
-
-        // Initialize the ROS interface after loading the script
-        function initROSInterface() {
-            // Connect to ROS
-            var ros = new ROSLIB.Ros({
-                url : 'ws://localhost:9090'
-            });
-
-            ros.on('connection', function() {
-                console.log('Connected to websocket server.');
-            });
-
-            ros.on('error', function(error) {
-                console.log('Error connecting to websocket server: ', error);
-            });
-
-            ros.on('close', function() {
-                console.log('Connection to websocket server closed.');
-            });
-
-            // Get a list of available topics and populate the selector
-            function populateTopicSelector() {
-                var topicSelector = document.getElementById('topicSelector');
-
-                ros.getTopics(function(topics) {
-                    var imageTopics = topics.topics.filter(function(topic, index) {
-                        return topics.types[index] === 'sensor_msgs/Image';
-                    });
-
-                    imageTopics.forEach(function(topic) {
-                        var option = document.createElement('option');
-                        option.value = topic;
-                        option.text = topic;
-                        topicSelector.add(option);
-                    });
-                });
-            }
-
-            // Function to handle image data
-            function handleImage(message) {
-                var img = document.getElementById('image');
-                var base64String = "data:image/jpeg;base64," + message.data;
-                img.src = base64String;
-            }
-
-            // Subscribe to selected image topic
-            function subscribeToTopic(topicName) {
-                if (imageTopic) {
-                    imageTopic.unsubscribe();
-                }
-
-                imageTopic = new ROSLIB.Topic({
-                    ros : ros,
-                    name : topicName,
-                    messageType : 'sensor_msgs/Image'
-                });
-
-                imageTopic.subscribe(function(message) {
-                    handleImage(message);
-                });
-            }
-
-            // Get the topic selector and set up event listener
-            var topicSelector = document.getElementById('topicSelector');
-            var imageTopic = null;
-
-            topicSelector.addEventListener('change', function() {
-                var selectedTopic = topicSelector.value;
-                if (selectedTopic) {
-                    subscribeToTopic(selectedTopic);
-                }
-            });
-
-            // Create publishers for buttons
-            var publisher1 = new ROSLIB.Topic({
-                ros : ros,
-                name : '/topic1',
-                messageType : 'std_msgs/String'
-            });
-
-            var publisher2 = new ROSLIB.Topic({
-                ros : ros,
-                name : '/topic2',
-                messageType : 'std_msgs/String'
-            });
-
-            // Publish a message when the first button is clicked
-            document.getElementById('publishButton1').addEventListener('click', function() {
-                var message = new ROSLIB.Message({
-                    data : 'Message from Button 1'
-                });
-                publisher1.publish(message);
-            });
-
-            // Publish a message when the second button is clicked
-            document.getElementById('publishButton2').addEventListener('click', function() {
-                var message = new ROSLIB.Message({
-                    data : 'Message from Button 2'
-                });
-                publisher2.publish(message);
-            });
-
-            // Create a publisher for the /http/status topic
-            var statusPublisher = new ROSLIB.Topic({
-                ros : ros,
-                name : '/http/status',
-                messageType : 'std_msgs/Bool'
-            });
-
-            statusPublisher.on('error', function(error) {
-                console.log('Error publishing message: ', error);
-            });
-
-            // Publish true to /http/status every 1 second
-            setInterval(function() {
-                var message = new ROSLIB.Message({
-                    data : true
-                });
-                statusPublisher.publish(message);
-            }, 1000);
-
-            // Populate the topic selector when the page loads
-            populateTopicSelector();
-        }
-
-        // Make an element draggable
-        // Make an element draggable and ensure it doesn't overlap with other draggable elements
-function makeDraggable(element) {
-    var offsetX, offsetY;
-    var elements = Array.from(document.querySelectorAll('.draggable'));
-    
-    element.addEventListener('mousedown', function(event) {
-        offsetX = event.clientX - element.getBoundingClientRect().left;
-        offsetY = event.clientY - element.getBoundingClientRect().top;
-        document.addEventListener('mousemove', moveElement);
-        document.addEventListener('mouseup', stopMovingElement);
-    });
-
-    function moveElement(event) {
-        var newLeft = event.clientX - offsetX;
-        var newTop = event.clientY - offsetY;
-
-        // Check for overlap with other elements
-        var overlap = false;
-        elements.forEach(function(otherElement) {
-            if (otherElement !== element) {
-                var otherRect = otherElement.getBoundingClientRect();
-                var elementRect = {
-                    top: newTop,
-                    left: newLeft,
-                    bottom: newTop + element.offsetHeight,
-                    right: newLeft + element.offsetWidth
-                };
-                
-                if (elementRect.left < otherRect.right &&
-                    elementRect.right > otherRect.left &&
-                    elementRect.top < otherRect.bottom &&
-                    elementRect.bottom > otherRect.top) {
-                    overlap = true;
-                }
-            }
-        });
-
-        // Update position only if there is no overlap
-        if (!overlap) {
-            element.style.left = newLeft + 'px';
-            element.style.top = newTop + 'px';
-        }
-    }
-
-    function stopMovingElement() {
-        document.removeEventListener('mousemove', moveElement);
-        document.removeEventListener('mouseup', stopMovingElement);
-    }
-}
-
-// Initialize draggable functionality
-document.querySelectorAll('.draggable').forEach(function(element) {
-    makeDraggable(element);
-});
-
-
-        // Initialize draggable functionality
-        document.querySelectorAll('.draggable').forEach(function(element) {
-            makeDraggable(element);
-        });
-
-        // Toggle dark mode
-        document.getElementById('themeToggleButton').addEventListener('click', function() {
-            var body = document.body;
-            var themeIcon = document.getElementById('themeIcon');
-            if (body.classList.contains('light-mode')) {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            }
-        });
-    </script>
+    <table style="width: 100%;">
+        <tr>
+            <td style="width: 66%;">
+                <table id="image_table" style="text-align: left; width: 100%;">
+                    <tr>
+                        <td colspan="2">
+                            <select id="image_main_topic_selector">
+                                <option value="">Select Image main Topic</option>
+                            </select>                                    
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" width="100%">
+                            <img id="image_main_viewer" src="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">
+                            <select id="image1_topic_selector" class="topicSelector">
+                                <option value="">Select Image 1 Topic</option>
+                            </select>                                    
+                        </td>
+                        <td colspan="1">
+                            <select id="image2_topic_selector">
+                                <option value="">Select Image 2 Topic</option>
+                            </select>
+                        </td>
+                        
+                    </tr>
+                    <tr>
+                        <td colspan="1" width="50%">
+                            <img id="image1_viewer" src="">
+                        </td>
+                        <td colspan="1" width="50%">
+                            <img id="image2_viewer" src="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">
+                            <select id="image3_topic_selector">
+                                <option value="">Select Image 3 Topic</option>
+                            </select>
+                        </td>
+                        <td colspan="1">
+                            <select id="image4_topic_selector">
+                                <option value="">Select Image 4 Topic</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="1" width="50%">
+                            <img id="image3_viewer" src="">
+                        </td>
+                        <td colspan="1" width="50%">
+                            <img id="image4_viewer" src="">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 33%;">
+                <table id="control_table" style="text-align: left; width: 100%;">
+                    <button id="button_circuit" style="width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);">
+                        START ROBOT
+                    </button>
+                    <button id="button_manipulator" style="width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);">
+                        START MANIPULATOR
+                    </button>
+                    <div style="width: 99%; border: 1px solid black;">Robot Status</div>
+                    <tbody>
+                        <tr>
+                            <td style="width: 30%; background-color: dimgray;"> Battery 1</td>
+                            <td colspan="6" id="battery1">0%</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; background-color: dimgray;">Battery 2</td>
+                            <td colspan="6" id="battery2">0%</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; background-color: dimgray;">Linear Speed</td>
+                            <td colspan="2" id="linear_x" style="width: 20%;">0</td>
+                            <td colspan="2" id="linear_y" style="width: 20%;">0</td>
+                            <td colspan="2"id="linear_z" style="width: 20%;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; background-color: dimgray;">Angular Speed</td>
+                            <td colspan="2" id="angular_x" style="width: 20%;">0</td>
+                            <td colspan="2" id="angular_y" style="width: 20%;">0</td>
+                            <td colspan="2" id="angular_z" style="width: 20%;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 0%; background-color: dimgray;">RPM</td>
+                            <td colspan="3" id="battery1">0</td>
+                            <td colspan="3" id="battery1">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
