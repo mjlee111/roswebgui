@@ -247,4 +247,3 @@ function addEventListenerToElement(documentId, eventType, functionEvent) {
         functionEvent(documentId);
     });
 }
-

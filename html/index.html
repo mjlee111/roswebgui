@@ -31,7 +31,7 @@
         <td colspan="1" style="width: 50%;">
             <div style="text-align: left; margin-left: 10px;">
                 Robot HostServer or IP: 
-                <input id="robot_address" size="20" placeholder="localhost" value="localhost">
+                <input id="robot_address" size="20" placeholder="localhost" value="192.168.0.16">
                 Port:
                 <input id="robot_port" size="10" placeholder="9090" value="9090">
                 <button id="robot_connect_button" style="height: 90%; background-color: rgb(255, 127, 127);">connect</button>
@@ -59,7 +59,9 @@
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <img id="image_main_viewer" src="">
+                            <img id="image_main_viewer" src="./resources/img/no_image.jpeg">
+                            <div id="videoCanvas" style="display: block;"></div>
+                            <canvas id="image_main_canvas" style="display: none;"></canvas>
                         </td>
                     </tr>
                     <tr>
@@ -86,10 +88,10 @@
                     </tr>
                     <tr>
                         <td colspan="1" width="50%">
-                            <img id="image1_viewer" src="">
+                            <img id="image1_viewer" src="./resources/img/no_image.jpeg">
                         </td>
                         <td colspan="1" width="50%">
-                            <img id="image2_viewer" src="">
+                            <img id="image2_viewer" src="./resources/img/no_image.jpeg">
                         </td>
                     </tr>
                     <tr>
@@ -116,10 +118,10 @@
                     </tr>
                     <tr>
                         <td colspan="1" width="50%">
-                            <img id="image3_viewer" src="">
+                            <img id="image3_viewer" src="./resources/img/no_image.jpeg">
                         </td>
                         <td colspan="1" width="50%">
-                            <img id="image4_viewer" src="">
+                            <img id="image4_viewer" src="./resources/img/no_image.jpeg">
                         </td>
                     </tr>
                 </table>
