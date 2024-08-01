@@ -4,58 +4,85 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.65, user-scalable=yes">
     <title>ROS Web GUI</title>
-    <head>WEB ROBOT CONTROLLER</head>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/tabwidget.css">
+    <link rel="icon" href="./resources/img/intelligence.png">
     <script type="text/javascript" src="js/roslib.min.js"></script>
     <script type="text/javascript" src="js/base.js"></script>
     <script type="text/javascript" src="js/ros.js"></script>
+    <script type="text/javascript" src="./js/tabwidget.js"></script>
 </head>
 
-<body onload="init(); init_ros();">
+<body onload="init(); init2()">
     <table id="server_table" style="text-align: left; width: 100%;">
         <tbody>
             <tr>
-                <td colspan="2" width="100%">
-                    <div style="white-space: nowrap; vertical-align: middle; text-align: center; margin-left: 10px;">
-                        Server Hostname or IP: 
-                        <input type="text" id="rosbridgeHost" value="">&nbsp; 
-                        Port: 
-                        <input type="text" id="rosbridgePort" size="5" value="">&nbsp;
-                        <input type="button" id="rosbridgeConnect" size="5" value="connect"/>
+                <td colspan="2">
+                    <div style="font-style: italic; white-space: nowrap; vertical-align: middle; text-align: center; font-size: 25px; color: whitesmoke; background-color: rgb(71, 71, 71);">
+                        <img src="./resources/img/intelligence.png" width="25px" height="25px" style="vertical-align: middle;">&nbsp; 
+                        TEAM RO:BIT WEB GUI
                     </div>
                 </td>
             </tr>
         </tbody>
     </table>
-
+    <table>
+        <tr>
+        <td colspan="1" style="width: 50%;">
+            <div style="text-align: left; margin-left: 10px;">
+                Robot HostServer or IP: 
+                <input id="robot_address" size="20" placeholder="localhost" value="localhost">
+                Port:
+                <input id="robot_port" size="10" placeholder="9090" value="9090">
+                <button id="robot_connect_button" style="height: 90%; background-color: rgb(255, 127, 127);">connect</button>
+            </div>
+        </td>
+        <td colspan="1" style="width: 50%;" >
+            <div id="connection_output" style="text-align: left;"></div>
+        </td>
+    </tr>
+    </table>
     <table style="width: 100%;">
         <tr>
             <td style="width: 66%;">
                 <table id="image_table" style="text-align: left; width: 100%;">
                     <tr>
-                        <td colspan="2">
+                        <td colspan="1">
                             <select id="image_main_topic_selector">
-                                <option value="">Select Image main Topic</option>
-                            </select>                                    
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <div id="image_main_topic" style="white-space: nowrap; text-align: left; font-size: 11px;">
+                            </div>
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2" width="100%">
+                        <td colspan="2">
                             <img id="image_main_viewer" src="">
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="1">
-                            <select id="image1_topic_selector" class="topicSelector">
-                                <option value="">Select Image 1 Topic</option>
+                        <td>
+                            <select id="image1_topic_selector">
+                                <option value=""></option>
                             </select>                                    
                         </td>
-                        <td colspan="1">
+                        <td>
                             <select id="image2_topic_selector">
-                                <option value="">Select Image 2 Topic</option>
+                                <option value=""></option>
                             </select>
                         </td>
-                        
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="image1_topic" style="white-space: nowrap; text-align: left; font-size: 11px;">
+                            </div>
+                        </td>
+                        <td>
+                            <div id="image2_topic" style="white-space: nowrap; text-align: left; font-size: 11px;">
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="1" width="50%">
@@ -68,13 +95,23 @@
                     <tr>
                         <td colspan="1">
                             <select id="image3_topic_selector">
-                                <option value="">Select Image 3 Topic</option>
+                                <option value=""></option>
                             </select>
                         </td>
                         <td colspan="1">
                             <select id="image4_topic_selector">
-                                <option value="">Select Image 4 Topic</option>
+                                <option value=""></option>
                             </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="image3_topic" style="white-space: nowrap; text-align: left; font-size: 11px;">
+                            </div>
+                        </td>
+                        <td>
+                            <div id="image4_topic" style="white-space: nowrap; text-align: left; font-size: 11px;">
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -90,12 +127,12 @@
             <td style="width: 33%;">
                 <table id="control_table" style="text-align: left; width: 100%;">
                     <button id="button_circuit" style="width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);">
-                        START ROBOT
+                        START CIRCUIT
                     </button>
                     <button id="button_manipulator" style="width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);">
                         START MANIPULATOR
                     </button>
-                    <div style="width: 99%; border: 1px solid black;">Robot Status</div>
+                    <div style="width: 99%; border: 1px solid black; font-size: larger;">Robot Status</div>
                     <tbody>
                         <tr>
                             <td style="width: 30%; background-color: dimgray;"> Battery 1</td>
@@ -121,6 +158,25 @@
                             <td style="width: 0%; background-color: dimgray;">RPM</td>
                             <td colspan="3" id="battery1">0</td>
                             <td colspan="3" id="battery1">0</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                <div class="tab-container">
+                                    <ul class="tab-menu">
+                                        <li class="tab active" data-tab="tab1">Robot Data</li>
+                                        <li class="tab" data-tab="tab2">SLAM</li>
+                                        <li class="tab" data-tab="tab3">MANIPULATOR</li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div id="tab1" class="tab-pane active">
+                                        </div>
+                                        <div id="tab2" class="tab-pane">
+                                        </div>
+                                        <div id="tab3" class="tab-pane">
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

@@ -1,5 +1,8 @@
 <!-- start_http_server.launch -->
 <launch>
-    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />]
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+        <arg name="address" value="localhost"/>
+        <arg name="port" value="9090"/>
+    </include>
     <node pkg="roswebgui" type="web_gui_start.py" name="http_gui" output="screen" />
 </launch>

@@ -1,4 +1,22 @@
+@font-face {
+    font-family: 'NanumBarunGothic';
+    src: url('../resources/fonts/NanumBarunGothic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.light-text {
+    font-weight: 300;
+}
+
 body {
+    font-family: 'NanumBarunGothic';
+    font-size: 14px;
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -23,6 +41,8 @@ td {
 }
 
 select {
+    font-family: 'NanumBarunGothic';
+    font-size: 11px;
     width: 100%;
     text-align: left;
     background-color: #4e4949;
@@ -34,6 +54,25 @@ div {
     color: white;
     border: 1px #000000;
 }
+
+button {
+    font-family: 'NanumBarunGothic';
+    font-size: 14px;
+}
+
+.output_box {
+    width: 100%;
+    height: 200px; 
+    border: 1px solid #000;
+    padding: 4px;
+    overflow-y: auto; 
+    background-color: #f0f0f0;
+    color: #000;
+    box-sizing: border-box; 
+    text-align: left;
+    font-size: 10px;
+}
+
 
 
 

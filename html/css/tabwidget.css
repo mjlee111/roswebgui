@@ -1,0 +1,45 @@
+body {
+    font-family: 'NanumBarunGothic';
+}
+
+.tab-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.tab-menu {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    border-bottom: 2px solid #706969;
+}
+
+.tab {
+    padding: 1px 1px;
+    cursor: pointer;
+    border: 1px solid #706969;
+    border-bottom: none;
+    background-color: #4e4949;
+}
+
+.tab.active {
+    background-color: #4e4949;
+    border-top: 2px solid #000000;
+    border-left: 2px solid #000000;
+    border-right: 2px solid #000000;
+    border-bottom: none;
+}
+
+.tab-content {
+    border-top: none;
+    padding: 30%;
+    background-color: #4e4949;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}

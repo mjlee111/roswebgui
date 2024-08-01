@@ -2,8 +2,11 @@
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 
-imageWidth = Math.round(windowWidth * 0.66);
-letimageHeight = Math.round(windowHeight * 0.4);
+imageWidthValue = 0.66
+imageHeightValue = 0.39
+
+imageWidth = Math.round(windowWidth * imageWidthValue);
+letimageHeight = Math.round(windowHeight * imageHeightValue);
 
 function init() {
     console.log("Page has loaded and init() is called.");
@@ -14,8 +17,8 @@ function updateWindowSize() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
-    imageWidth = Math.round(windowWidth * 0.66);
-    imageHeight = Math.round(windowHeight * 0.4);
+    imageWidth = Math.round(windowWidth * imageWidthValue);
+    imageHeight = Math.round(windowHeight * imageHeightValue);
     imageWidthSmall = Math.round(imageWidth / 2);
     imageHeightSmall = Math.round(imageHeight / 2);
 
