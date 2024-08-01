@@ -11,9 +11,11 @@
     <script type="text/javascript" src="js/base.js"></script>
     <script type="text/javascript" src="js/ros.js"></script>
     <script type="text/javascript" src="./js/tabwidget.js"></script>
+    <script type="text/javascript" src="./js/joystick.js"></script>
+
 </head>
 
-<body onload="init(); init2()">
+<body onload="init(); init2();">
     <table id="server_table" style="text-align: left; width: 100%;">
         <tbody>
             <tr>
@@ -178,6 +180,12 @@
                                         </div>
                                     </div>
                                 </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                <div id="controller-status">No controller connected.</div>
+                                <div id="controller-info"></div>
                             </td>
                         </tr>
                     </tbody>
