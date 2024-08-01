@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamepad API Example</title>
+    <style>
+        #controller-status {
+            font-size: 1.2em;
+        }
+        .controller {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gamepad API Example</h1>
+    <div id="controller-status">No controller connected.</div>
+    <div id="controller-info"></div>
+
+    <script>
+        window.addEventListener("gamepadconnected", (event) => {
+            const gamepad = event.gamepad;
+            const statusDiv = document.getElementById("controller-status");
+            statusDiv.textContent = `Controller connected: ${gamepad.id}`;
+
+            updateControllerInfo();
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            const statusDiv = document.getElementById("controller-status");
+            statusDiv.textContent = "No controller connected.";
+
+            const infoDiv = document.getElementById("controller-info");
+            infoDiv.innerHTML = '';
+        });
+
+        function updateControllerInfo() {
+            const gamepads = navigator.getGamepads();
+            const infoDiv = document.getElementById("controller-info");
+            infoDiv.innerHTML = '';
+
+            for (let i = 0; i < gamepads.length; i++) {
+                const gamepad = gamepads[i];
+                if (gamepad) {
+                    const controllerDiv = document.createElement("div");
+                    controllerDiv.classList.add("controller");
+
+                    const buttons = gamepad.buttons.map((button, index) => `Button ${index}: ${button.pressed ? 'Pressed' : 'Released'}`).join('<br>');
+                    const axes = gamepad.axes.map((axis, index) => `Axis ${index}: ${axis.toFixed(2)}`).join('<br>');
+
+                    controllerDiv.innerHTML = `<h2>Controller ${i}</h2><div>${buttons}</div><div>${axes}</div>`;
+                    infoDiv.appendChild(controllerDiv);
+                }
+            }
+        }
+
+        function gameLoop() {
+            updateControllerInfo();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
