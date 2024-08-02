@@ -4,5 +4,6 @@
         <arg name="address" value="0.0.0.0"/>
         <arg name="port" value="9090"/>
     </include>
+    <include file="$(find image_compressed)/launch/converter.launch" />
     <node pkg="roswebgui" type="web_gui_start.py" name="http_gui" output="screen" />
 </launch>
