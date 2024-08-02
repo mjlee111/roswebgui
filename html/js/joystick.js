@@ -15,7 +15,6 @@ window.addEventListener("gamepaddisconnected", (event) => {
 });
 
 function updateControllerInfo() {
-    console.log("joy update");
     const gamepads = navigator.getGamepads();
     const infoDiv = document.getElementById("controller-info");
     infoDiv.innerHTML = '';
@@ -40,3 +39,4 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+gameLoop();
