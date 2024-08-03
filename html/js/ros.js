@@ -303,12 +303,6 @@ function updateControllerInfo() {
                 publishControllerData(axesData, buttonsData);
             }
 
-            const infoDiv = document.getElementById("controller-info");
-            infoDiv.innerHTML = '';
-            const controllerDiv = document.createElement("div");
-            controllerDiv.classList.add("controller");
-
-            infoDiv.appendChild(controllerDiv);
         }
     }
 }
