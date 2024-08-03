@@ -6,28 +6,32 @@ var ros = null;
 var robot_init = false;
 var manipulator_init = false;
 
+let controllerData = [];
+
+let requestPublisher;
+let controllerPublisher;
+let cmdVelSubscriber;
+
+const joyDeadZone = 0.09
+
 function init2() {
     let robot_connect_button = document.getElementById('robot_connect_button');
     robot_connect_button.addEventListener('click', connect);
 }
 
 function connect() {
-    if(ros)
-    {
+    if (ros) {
         ros.close();
-        ros = null; 
+        ros = null;
         const robot_connection_output = document.getElementById('connection_output');
         robot_connection_output.textContent = `Disconnected`;
         robot_connect_button.style = "height: 90%; background-color: rgb(255, 127, 127)";
-    }
-    else
-    {
+    } else {
         init_ros();
     }
 }
 
 function init_ros() {
-    // ROS Initialize
     const robot_address = document.getElementById('robot_address');
     const robot_port = document.getElementById('robot_port');
     const robot_connection_output = document.getElementById('connection_output');
@@ -48,7 +52,7 @@ function init_ros() {
 
     ros.on('connection', function() {
         console.log('Connected to ROS websocket server.');
-        robot_connection_output.textContent =  `Connected to ${url}`;
+        robot_connection_output.textContent = `Connected to ${url}`;
         robot_connect_button.style.backgroundColor = "rgb(55, 163, 64)";
 
         var statusPublisher = new ROSLIB.Topic({
@@ -64,43 +68,32 @@ function init_ros() {
             statusPublisher.publish(message);
         }, 1000);
 
-        document.getElementById('button_circuit').addEventListener('click', initializeRobot);
-        document.getElementById('button_manipulator').addEventListener('click', initializeManipulator);
-
-        addEventListenerToElement('image_main_topic_selector', 'click', () => listImageTopics('image_main_topic_selector'));
-        addEventListenerToElement('image_main_topic_selector', 'click', () => subscribeImage('image_main_topic_selector', 'image_main_topic', 'image_main_viewer', image_main_topic))
-
-        addEventListenerToElement('image1_topic_selector', 'click', () => listImageTopics('image1_topic_selector'));
-        addEventListenerToElement('image1_topic_selector', 'click', () => subscribeImage('image1_topic_selector', 'image1_topic', 'image1_viewer', image1_topic));
-        
-        addEventListenerToElement('image2_topic_selector', 'click', () => listImageTopics('image2_topic_selector'));
-        addEventListenerToElement('image2_topic_selector', 'click', () => subscribeImage('image2_topic_selector', 'image2_topic', 'image2_viewer', image2_topic));
-
-        addEventListenerToElement('image3_topic_selector', 'click', () => listImageTopics('image3_topic_selector'));
-        addEventListenerToElement('image3_topic_selector', 'click', () => subscribeImage('image3_topic_selector', 'image3_topic', 'image3_viewer', image3_topic));
-
-        addEventListenerToElement('image4_topic_selector', 'click', () => listImageTopics('image4_topic_selector'));
-        addEventListenerToElement('image4_topic_selector', 'click', () => subscribeImage('image4_topic_selector', 'image4_topic', 'image4_viewer', image4_topic));
+        initializeRosComponents();
     });
 
     ros.on('error', function(error) {
         console.log('Error connecting to ROS websocket server: ', error);
-        robot_connection_output.textContent =  `Error connecting to ROS websocket server: ${error}`;
-        robot_connect_button.style = "height: 90%; background-color: rgb(255, 127, 127);"
+        robot_connection_output.textContent = `Error connecting to ROS websocket server: ${error}`;
+        robot_connect_button.style = "height: 90%; background-color: rgb(255, 127, 127);";
     });
 
     ros.on('close', function() {
         console.log('Connection to ROS websocket server closed.');
     });
 
-    // ROS Subscribers & Publishers
-    const requestPublisher = new ROSLIB.Topic({
+    requestPublisher = new ROSLIB.Topic({
         ros: ros,
         name: '/webgui/request',
         messageType: 'std_msgs/String'
     });
 
-    const cmdVelSubscriber = new ROSLIB.Topic({
+    controllerPublisher = new ROSLIB.Topic({
+        ros: ros,
+        name: '/joy',
+        messageType: 'sensor_msgs/Joy'
+    });
+
+    cmdVelSubscriber = new ROSLIB.Topic({
         ros: ros,
         name: '/cmd_vel',
         messageType: 'geometry_msgs/Twist'
@@ -113,133 +106,144 @@ function init_ros() {
         document.getElementById('angular_x').innerHTML = message.angular.x;
         document.getElementById('angular_y').innerHTML = message.angular.y;
         document.getElementById('angular_z').innerHTML = message.angular.z;
-    })
+    });
+}
 
-    // Other ROS functions
-    function listRosTopics(documentId) {
-        var service = new ROSLIB.Service({
-            ros: ros,
-            name: '/rosapi/topics',
-            serviceType: 'rosapi/Topics'
-        });
+function initializeRosComponents() {
+    document.getElementById('button_circuit').addEventListener('click', initializeRobot);
+    document.getElementById('button_manipulator').addEventListener('click', initializeManipulator);
 
-        service.callService(new ROSLIB.ServiceRequest(), function(result) {
-            var selector = document.getElementById(documentId);
-            while (selector.firstChild) {
-                selector.removeChild(selector.firstChild);
-            }
-            result.topics.forEach(function(topic) {
-                var option = document.createElement('option');
-                option.value = topic;
-                option.text = topic;
-                selector.appendChild(option);
-            });
-        });
-    }
+    addEventListenerToElement('image_main_topic_selector', 'click', () => listImageTopics('image_main_topic_selector'));
+    addEventListenerToElement('image_main_topic_selector', 'click', () => subscribeImage('image_main_topic_selector', 'image_main_topic', 'image_main_viewer', image_main_topic));
 
-    function initializeRobot() {
-        var button = document.getElementById('button_circuit');
+    addEventListenerToElement('image1_topic_selector', 'click', () => listImageTopics('image1_topic_selector'));
+    addEventListenerToElement('image1_topic_selector', 'click', () => subscribeImage('image1_topic_selector', 'image1_topic', 'image1_viewer', image1_topic));
 
-        if(robot_init) 
-        {
-            robot_init = false;
-            button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);';
-            button.innerHTML = 'START CIRCUIT';
-            var message = new ROSLIB.Message({
-                data: "STOP CIRCUIT"
-            });
-            requestPublisher.publish(message);
+    addEventListenerToElement('image2_topic_selector', 'click', () => listImageTopics('image2_topic_selector'));
+    addEventListenerToElement('image2_topic_selector', 'click', () => subscribeImage('image2_topic_selector', 'image2_topic', 'image2_viewer', image2_topic));
+
+    addEventListenerToElement('image3_topic_selector', 'click', () => listImageTopics('image3_topic_selector'));
+    addEventListenerToElement('image3_topic_selector', 'click', () => subscribeImage('image3_topic_selector', 'image3_topic', 'image3_viewer', image3_topic));
+
+    addEventListenerToElement('image4_topic_selector', 'click', () => listImageTopics('image4_topic_selector'));
+    addEventListenerToElement('image4_topic_selector', 'click', () => subscribeImage('image4_topic_selector', 'image4_topic', 'image4_viewer', image4_topic));
+}
+
+function listRosTopics(documentId) {
+    var service = new ROSLIB.Service({
+        ros: ros,
+        name: '/rosapi/topics',
+        serviceType: 'rosapi/Topics'
+    });
+
+    service.callService(new ROSLIB.ServiceRequest(), function(result) {
+        var selector = document.getElementById(documentId);
+        while (selector.firstChild) {
+            selector.removeChild(selector.firstChild);
         }
-
-        else            
-        {
-            robot_init = true;
-            button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(55, 163, 64);';
-            button.innerHTML = 'STOP CIRCUIT';
-            var message = new ROSLIB.Message({
-                data: "START CIRCUIT"
-            });
-            requestPublisher.publish(message);
-        }
-    }
-
-    function initializeManipulator() {
-        var button = document.getElementById('button_manipulator');
-
-        if(robot_init) 
-        {
-            robot_init = false;
-            button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);';
-            button.innerHTML = 'START MANIPULATOR';
-            var message = new ROSLIB.Message({
-                data: "STOP MANIPULATOR"
-            });
-            requestPublisher.publish(message);
-        }
-
-        else            
-        {
-            robot_init = true;
-            button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(55, 163, 64);';
-            button.innerHTML = 'STOP MANIPULATOR';
-            var message = new ROSLIB.Message({
-                data: "START MANIPULATOR"
-            });
-            requestPublisher.publish(message);
-        }
-    }
-
-    function listImageTopics(documentId) {
-        var service = new ROSLIB.Service({
-            ros: ros,
-            name: '/rosapi/topics_for_type',
-            serviceType: 'rosapi/TopicsForType'
+        result.topics.forEach(function(topic) {
+            var option = document.createElement('option');
+            option.value = topic;
+            option.text = topic;
+            selector.appendChild(option);
         });
+    });
+}
 
-        var request = new ROSLIB.ServiceRequest({
-            type: 'sensor_msgs/CompressedImage'
+function initializeRobot() {
+    var button = document.getElementById('button_circuit');
+
+    if (robot_init) {
+        robot_init = false;
+        button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);';
+        button.innerHTML = 'START CIRCUIT';
+        var message = new ROSLIB.Message({
+            data: "STOP CIRCUIT"
         });
-
-        service.callService(request, function(result) {
-            var selector = document.getElementById(documentId);
-            while (selector.firstChild) {
-                selector.removeChild(selector.firstChild);
-            }
-            result.topics.forEach(function(topic) {
-                var option = document.createElement('option');
-                option.value = topic;
-                option.text = topic;
-                selector.appendChild(option);
-            });
+        requestPublisher.publish(message);
+    } else {
+        robot_init = true;
+        button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(55, 163, 64);';
+        button.innerHTML = 'STOP CIRCUIT';
+        var message = new ROSLIB.Message({
+            data: "START CIRCUIT"
         });
+        requestPublisher.publish(message);
     }
+}
 
-    function handleImage(documentId, message) {
-        var img = document.getElementById(documentId);
-        var base64String = "data:image/jpeg;base64," + message.data;
-        img.src = base64String;
+function initializeManipulator() {
+    var button = document.getElementById('button_manipulator');
+
+    if (manipulator_init) {
+        manipulator_init = false;
+        button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);';
+        button.innerHTML = 'START MANIPULATOR';
+        var message = new ROSLIB.Message({
+            data: "STOP MANIPULATOR"
+        });
+        requestPublisher.publish(message);
+    } else {
+        manipulator_init = true;
+        button.style = 'width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(55, 163, 64);';
+        button.innerHTML = 'STOP MANIPULATOR';
+        var message = new ROSLIB.Message({
+            data: "START MANIPULATOR"
+        });
+        requestPublisher.publish(message);
     }
+}
 
-    function subscribeImage(selectorId, outputId, imageId, topic) {
-        if(topic) {
-            topic.unsubscribe();
+function listImageTopics(documentId) {
+    var service = new ROSLIB.Service({
+        ros: ros,
+        name: '/rosapi/topics_for_type',
+        serviceType: 'rosapi/TopicsForType'
+    });
+
+    var request = new ROSLIB.ServiceRequest({
+        type: 'sensor_msgs/CompressedImage'
+    });
+
+    service.callService(request, function(result) {
+        var selector = document.getElementById(documentId);
+        while (selector.firstChild) {
+            selector.removeChild(selector.firstChild);
         }
-
-        var selectElement = document.getElementById(selectorId);
-        var topicName = selectElement.options[selectElement.selectedIndex].text;
-        selectElement.options[0].text = topicName;
-        document.getElementById(outputId).textContent = topicName;
-
-        topic = new ROSLIB.Topic({
-            ros : ros,
-            name : topicName,
-            messageType : 'sensor_msgs/CompressedImage'
+        result.topics.forEach(function(topic) {
+            var option = document.createElement('option');
+            option.value = topic;
+            option.text = topic;
+            selector.appendChild(option);
         });
+    });
+}
 
-        topic.subscribe(function(message){
-            handleImage(imageId, message);
-        })
+function handleImage(documentId, message) {
+    var img = document.getElementById(documentId);
+    var base64String = "data:image/jpeg;base64," + message.data;
+    img.src = base64String;
+}
+
+function subscribeImage(selectorId, outputId, imageId, topic) {
+    if (topic) {
+        topic.unsubscribe();
     }
+
+    var selectElement = document.getElementById(selectorId);
+    var topicName = selectElement.options[selectElement.selectedIndex].text;
+    selectElement.options[0].text = topicName;
+    document.getElementById(outputId).textContent = topicName;
+
+    topic = new ROSLIB.Topic({
+        ros: ros,
+        name: topicName,
+        messageType: 'sensor_msgs/CompressedImage'
+    });
+
+    topic.subscribe(function(message) {
+        handleImage(imageId, message);
+    });
 }
 
 function addEventListenerToElement(documentId, eventType, functionEvent) {
@@ -247,3 +251,111 @@ function addEventListenerToElement(documentId, eventType, functionEvent) {
         functionEvent(documentId);
     });
 }
+
+function publishControllerData(axesData, buttonsData) {
+    if (controllerPublisher) {
+        var axesArray = axesData.map(axis => parseFloat(axis));
+        var buttonsArray = buttonsData.map(button => button.pressed ? 1 : 0);
+
+        var joyMessage = new ROSLIB.Message({
+            axes: axesArray,
+            buttons: buttonsArray
+        });
+        controllerPublisher.publish(joyMessage);
+    } else {
+        console.error('controllerPublisher is undefined');
+    }
+}
+
+function updateControllerInfo() {
+    const gamepads = navigator.getGamepads();
+
+    for (let i = 0; i < gamepads.length; i++) {
+        const gamepad = gamepads[i];
+        if (gamepad) {
+            let buttonsData = [];
+            let axesData = [];
+
+            for (let j = 0; j < gamepad.buttons.length; j++) {
+                const button = gamepad.buttons[j];
+                buttonsData.push({
+                    index: j,
+                    pressed: button.pressed
+                });
+            }
+
+            for (let k = 0; k < gamepad.axes.length; k++) {
+                let value = parseFloat(gamepad.axes[k].toFixed(2));
+                if (Math.abs(value) < joyDeadZone && Math.abs(value) > -joyDeadZone) {
+                    value = 0.00;
+                }
+                axesData.push(value);
+            }
+
+            controllerData.push({
+                controllerIndex: i,
+                buttons: buttonsData,
+                axes: axesData
+            });
+
+            // Only publish if controllerPublisher is defined
+            if (controllerPublisher) {
+                publishControllerData(axesData, buttonsData);
+            }
+
+            const infoDiv = document.getElementById("controller-info");
+            infoDiv.innerHTML = '';
+            const controllerDiv = document.createElement("div");
+            controllerDiv.classList.add("controller");
+
+            infoDiv.appendChild(controllerDiv);
+        }
+    }
+}
+
+function gameLoop() {
+    updateControllerInfo();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+window.addEventListener("gamepadconnected", (event) => {
+    const gamepad = event.gamepad;
+    const statusDiv = document.getElementById("controller-status");
+    statusDiv.textContent = `Controller connected: ${gamepad.id}`;
+
+    updateControllerInfo();
+});
+
+window.addEventListener("gamepaddisconnected", (event) => {
+    const statusDiv = document.getElementById("controller-status");
+    statusDiv.textContent = "No controller connected.";
+
+    const infoDiv = document.getElementById("controller-info");
+    infoDiv.innerHTML = '';
+});
+
+
+function gameLoop() {
+    updateControllerInfo();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+window.addEventListener("gamepadconnected", (event) => {
+    const gamepad = event.gamepad;
+    const statusDiv = document.getElementById("controller-status");
+    statusDiv.textContent = `Controller connected: ${gamepad.id}`;
+
+    updateControllerInfo();
+});
+
+window.addEventListener("gamepaddisconnected", (event) => {
+    const statusDiv = document.getElementById("controller-status");
+    statusDiv.textContent = "No controller connected.";
+
+    const infoDiv = document.getElementById("controller-info");
+    infoDiv.innerHTML = '';
+});

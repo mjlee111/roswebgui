@@ -136,8 +136,18 @@
                     <button id="button_manipulator" style="width: 90%; padding: 1%; margin-top: 2px; margin-bottom: 2px; background-color: rgb(255, 127, 127);">
                         START MANIPULATOR
                     </button>
-                    <div style="width: 99%; border: 1px solid black; font-size: larger;">Robot Status</div>
                     <tbody>
+                        <tr>
+                            <td colspan="6">
+                                <div id="controller-status" style="font-size: 5px;">No controller connected.</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">
+                                <div style="width: 99%; border: 1px solid black; font-size: larger;">Robot Status</div>
+                            </td>
+                        </tr>
+
                         <tr>
                             <td style="width: 30%; background-color: dimgray;"> Battery 1</td>
                             <td colspan="6" id="battery1">0%</td>
@@ -182,18 +192,11 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="6">
-                                <div id="controller-status">No controller connected.</div>
-                                <div id="controller-info"></div>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </td>
         </tr>
     </table>
-    <script type="text/javascript" src="./js/joystick.js"></script>
 
 </body>
 </html>
