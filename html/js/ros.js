@@ -11,6 +11,8 @@ let controllerData = [];
 let requestPublisher;
 let controllerPublisher;
 let cmdVelSubscriber;
+let rokaStatusSubscriber;
+let northStatusSubscriber;
 
 const joyDeadZone = 0.09
 
@@ -69,6 +71,7 @@ function init_ros() {
         }, 1000);
 
         initializeRosComponents();
+        subscribeArmyStatusTopics();
     });
 
     ros.on('error', function(error) {
@@ -127,6 +130,41 @@ function initializeRosComponents() {
 
     addEventListenerToElement('image4_topic_selector', 'click', () => listImageTopics('image4_topic_selector'));
     addEventListenerToElement('image4_topic_selector', 'click', () => subscribeImage('image4_topic_selector', 'image4_topic', 'image4_viewer', image4_topic));
+}
+
+function subscribeArmyStatusTopics() {
+    rokaStatusSubscriber = new ROSLIB.Topic({
+        ros: ros,
+        name: '/army_status/roka',
+        messageType: 'std_msgs/Bool'
+    });
+
+    northStatusSubscriber = new ROSLIB.Topic({
+        ros: ros,
+        name: '/army_status/north',
+        messageType: 'std_msgs/Bool'
+    });
+
+    rokaStatusSubscriber.subscribe(function(message) {
+        updateLabelBackground('ROKA', message.data);
+    });
+
+    northStatusSubscriber.subscribe(function(message) {
+        updateLabelBackground('NORTH', message.data);
+    });
+}
+
+function updateLabelBackground(labelId, status) {
+    var label = document.getElementById(labelId);
+    if (status) {
+        if (labelId === 'ROKA') {
+            label.style.backgroundColor = 'green';
+        } else if (labelId === 'NORTH') {
+            label.style.backgroundColor = 'red';
+        }
+    } else {
+        label.style.backgroundColor = '';
+    }
 }
 
 function listRosTopics(documentId) {
@@ -306,30 +344,6 @@ function updateControllerInfo() {
         }
     }
 }
-
-function gameLoop() {
-    updateControllerInfo();
-    requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
-
-window.addEventListener("gamepadconnected", (event) => {
-    const gamepad = event.gamepad;
-    const statusDiv = document.getElementById("controller-status");
-    statusDiv.textContent = `Controller connected: ${gamepad.id}`;
-
-    updateControllerInfo();
-});
-
-window.addEventListener("gamepaddisconnected", (event) => {
-    const statusDiv = document.getElementById("controller-status");
-    statusDiv.textContent = "No controller connected.";
-
-    const infoDiv = document.getElementById("controller-info");
-    infoDiv.innerHTML = '';
-});
-
 
 function gameLoop() {
     updateControllerInfo();
