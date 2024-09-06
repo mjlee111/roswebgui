@@ -136,40 +136,40 @@ function initializeRosComponents() {
     addEventListenerToElement('image4_topic_selector', 'click', () => subscribeImage('image4_topic_selector', 'image4_topic', 'image4_viewer', image4_topic));
 }
 
-function subscribeArmyStatusTopics() {
-    rokaStatusSubscriber = new ROSLIB.Topic({
-        ros: ros,
-        name: '/army_status/roka',
-        messageType: 'std_msgs/Bool'
-    });
+// function subscribeArmyStatusTopics() {
+//     rokaStatusSubscriber = new ROSLIB.Topic({
+//         ros: ros,
+//         name: '/army_status/roka',
+//         messageType: 'std_msgs/Bool'
+//     });
 
-    northStatusSubscriber = new ROSLIB.Topic({
-        ros: ros,
-        name: '/army_status/north',
-        messageType: 'std_msgs/Bool'
-    });
+//     northStatusSubscriber = new ROSLIB.Topic({
+//         ros: ros,
+//         name: '/army_status/north',
+//         messageType: 'std_msgs/Bool'
+//     });
 
-    rokaStatusSubscriber.subscribe(function(message) {
-        updateLabelBackground('ROKA', message.data);
-    });
+//     rokaStatusSubscriber.subscribe(function(message) {
+//         updateLabelBackground('ROKA', message.data);
+//     });
 
-    northStatusSubscriber.subscribe(function(message) {
-        updateLabelBackground('NORTH', message.data);
-    });
-}
+//     northStatusSubscriber.subscribe(function(message) {
+//         updateLabelBackground('NORTH', message.data);
+//     });
+// }
 
-function updateLabelBackground(labelId, status) {
-    var label = document.getElementById(labelId);
-    if (status) {
-        if (labelId === 'ROKA') {
-            label.style.backgroundColor = 'green';
-        } else if (labelId === 'NORTH') {
-            label.style.backgroundColor = 'red';
-        }
-    } else {
-        label.style.backgroundColor = '';
-    }
-}
+// function updateLabelBackground(labelId, status) {
+//     var label = document.getElementById(labelId);
+//     if (status) {
+//         if (labelId === 'ROKA') {
+//             label.style.backgroundColor = 'green';
+//         } else if (labelId === 'NORTH') {
+//             label.style.backgroundColor = 'red';
+//         }
+//     } else {
+//         label.style.backgroundColor = '';
+//     }
+// }
 
 function listRosTopics(documentId) {
     var service = new ROSLIB.Service({
@@ -302,7 +302,7 @@ function handleClick(buttonId) {
 
     boolArray[index] = newValue;
 
-    const topicName = `/buttons/${buttonId}`;
+    const topicName = `/buttons/data${buttonId}`;
     
     const buttonTopic = new ROSLIB.Topic({
         ros: ros,
@@ -331,7 +331,7 @@ function updateButtonBackground(buttonId, status) {
 
 function subscribeToButtonTopics() {
     for (let i = 1; i <= 8; i++) {
-        const topicName = `/buttons/${i}`;
+        const topicName = `/buttons/data${i}`;
         
         const buttonTopic = new ROSLIB.Topic({
             ros: ros,
