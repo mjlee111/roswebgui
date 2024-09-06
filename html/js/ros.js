@@ -94,26 +94,26 @@ function init_ros() {
         messageType: 'std_msgs/String'
     });
 
-    controllerPublisher = new ROSLIB.Topic({
-        ros: ros,
-        name: '/joy',
-        messageType: 'sensor_msgs/Joy'
-    });
+    // controllerPublisher = new ROSLIB.Topic({
+    //     ros: ros,
+    //     name: '/joy',
+    //     messageType: 'sensor_msgs/Joy'
+    // });
 
-    cmdVelSubscriber = new ROSLIB.Topic({
-        ros: ros,
-        name: '/cmd_vel',
-        messageType: 'geometry_msgs/Twist'
-    });
+    // cmdVelSubscriber = new ROSLIB.Topic({
+    //     ros: ros,
+    //     name: '/cmd_vel',
+    //     messageType: 'geometry_msgs/Twist'
+    // });
 
-    cmdVelSubscriber.subscribe(function(message) {
-        document.getElementById('linear_x').innerHTML = message.linear.x;
-        document.getElementById('linear_y').innerHTML = message.linear.y;
-        document.getElementById('linear_z').innerHTML = message.linear.z;
-        document.getElementById('angular_x').innerHTML = message.angular.x;
-        document.getElementById('angular_y').innerHTML = message.angular.y;
-        document.getElementById('angular_z').innerHTML = message.angular.z;
-    });
+    // cmdVelSubscriber.subscribe(function(message) {
+    //     document.getElementById('linear_x').innerHTML = message.linear.x;
+    //     document.getElementById('linear_y').innerHTML = message.linear.y;
+    //     document.getElementById('linear_z').innerHTML = message.linear.z;
+    //     document.getElementById('angular_x').innerHTML = message.angular.x;
+    //     document.getElementById('angular_y').innerHTML = message.angular.y;
+    //     document.getElementById('angular_z').innerHTML = message.angular.z;
+    // });
 }
 
 function initializeRosComponents() {
