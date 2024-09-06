@@ -290,80 +290,80 @@ function addEventListenerToElement(documentId, eventType, functionEvent) {
     });
 }
 
-function publishControllerData(axesData, buttonsData) {
-    if (controllerPublisher) {
-        var axesArray = axesData.map(axis => parseFloat(axis));
-        var buttonsArray = buttonsData.map(button => button.pressed ? 1 : 0);
+// function publishControllerData(axesData, buttonsData) {
+//     if (controllerPublisher) {
+//         var axesArray = axesData.map(axis => parseFloat(axis));
+//         var buttonsArray = buttonsData.map(button => button.pressed ? 1 : 0);
 
-        var joyMessage = new ROSLIB.Message({
-            axes: axesArray,
-            buttons: buttonsArray
-        });
-        controllerPublisher.publish(joyMessage);
-    } else {
-        console.error('controllerPublisher is undefined');
-    }
-}
+//         var joyMessage = new ROSLIB.Message({
+//             axes: axesArray,
+//             buttons: buttonsArray
+//         });
+//         controllerPublisher.publish(joyMessage);
+//     } else {
+//         console.error('controllerPublisher is undefined');
+//     }
+// }
 
-function updateControllerInfo() {
-    const gamepads = navigator.getGamepads();
+// function updateControllerInfo() {
+//     const gamepads = navigator.getGamepads();
 
-    for (let i = 0; i < gamepads.length; i++) {
-        const gamepad = gamepads[i];
-        if (gamepad) {
-            let buttonsData = [];
-            let axesData = [];
+//     for (let i = 0; i < gamepads.length; i++) {
+//         const gamepad = gamepads[i];
+//         if (gamepad) {
+//             let buttonsData = [];
+//             let axesData = [];
 
-            for (let j = 0; j < gamepad.buttons.length; j++) {
-                const button = gamepad.buttons[j];
-                buttonsData.push({
-                    index: j,
-                    pressed: button.pressed
-                });
-            }
+//             for (let j = 0; j < gamepad.buttons.length; j++) {
+//                 const button = gamepad.buttons[j];
+//                 buttonsData.push({
+//                     index: j,
+//                     pressed: button.pressed
+//                 });
+//             }
 
-            for (let k = 0; k < gamepad.axes.length; k++) {
-                let value = parseFloat(gamepad.axes[k].toFixed(2));
-                if (Math.abs(value) < joyDeadZone && Math.abs(value) > -joyDeadZone) {
-                    value = 0.00;
-                }
-                axesData.push(value);
-            }
+//             for (let k = 0; k < gamepad.axes.length; k++) {
+//                 let value = parseFloat(gamepad.axes[k].toFixed(2));
+//                 if (Math.abs(value) < joyDeadZone && Math.abs(value) > -joyDeadZone) {
+//                     value = 0.00;
+//                 }
+//                 axesData.push(value);
+//             }
 
-            controllerData.push({
-                controllerIndex: i,
-                buttons: buttonsData,
-                axes: axesData
-            });
+//             controllerData.push({
+//                 controllerIndex: i,
+//                 buttons: buttonsData,
+//                 axes: axesData
+//             });
 
-            // Only publish if controllerPublisher is defined
-            if (controllerPublisher) {
-                publishControllerData(axesData, buttonsData);
-            }
+//             // Only publish if controllerPublisher is defined
+//             if (controllerPublisher) {
+//                 publishControllerData(axesData, buttonsData);
+//             }
 
-        }
-    }
-}
+//         }
+//     }
+// }
 
-function gameLoop() {
-    updateControllerInfo();
-    requestAnimationFrame(gameLoop);
-}
+// function gameLoop() {
+//     updateControllerInfo();
+//     requestAnimationFrame(gameLoop);
+// }
 
-gameLoop();
+// gameLoop();
 
-window.addEventListener("gamepadconnected", (event) => {
-    const gamepad = event.gamepad;
-    const statusDiv = document.getElementById("controller-status");
-    statusDiv.textContent = `Controller connected: ${gamepad.id}`;
+// window.addEventListener("gamepadconnected", (event) => {
+//     const gamepad = event.gamepad;
+//     const statusDiv = document.getElementById("controller-status");
+//     statusDiv.textContent = `Controller connected: ${gamepad.id}`;
 
-    updateControllerInfo();
-});
+//     updateControllerInfo();
+// });
 
-window.addEventListener("gamepaddisconnected", (event) => {
-    const statusDiv = document.getElementById("controller-status");
-    statusDiv.textContent = "No controller connected.";
+// window.addEventListener("gamepaddisconnected", (event) => {
+//     const statusDiv = document.getElementById("controller-status");
+//     statusDiv.textContent = "No controller connected.";
 
-    const infoDiv = document.getElementById("controller-info");
-    infoDiv.innerHTML = '';
-});
+//     const infoDiv = document.getElementById("controller-info");
+//     infoDiv.innerHTML = '';
+// });
