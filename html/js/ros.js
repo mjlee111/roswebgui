@@ -86,6 +86,8 @@ function init_ros() {
         console.log('Connection to ROS websocket server closed.');
     });
 
+    subscribeToButtonTopics()
+
     requestPublisher = new ROSLIB.Topic({
         ros: ros,
         name: '/webgui/request',
