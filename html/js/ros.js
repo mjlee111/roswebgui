@@ -14,6 +14,8 @@ let cmdVelSubscriber;
 let rokaStatusSubscriber;
 let northStatusSubscriber;
 
+let boolArray = [false, false, false, false, false, false, false, false];
+
 const joyDeadZone = 0.09
 
 function init2() {
@@ -289,6 +291,59 @@ function addEventListenerToElement(documentId, eventType, functionEvent) {
         functionEvent(documentId);
     });
 }
+
+function handleClick(buttonId) {
+    const index = parseInt(buttonId) - 1;
+
+    let currentValue = boolArray[index];
+    let newValue = !currentValue;
+
+    boolArray[index] = newValue;
+
+    const topicName = `/buttons/${buttonId}`;
+    
+    const buttonTopic = new ROSLIB.Topic({
+        ros: ros,
+        name: topicName,
+        messageType: 'std_msgs/Bool'
+    });
+
+    const message = new ROSLIB.Message({
+        data: newValue
+    });
+
+    buttonTopic.publish(message);
+
+    console.log(`Published to ${topicName} with data: ${newValue}`);
+}
+
+function updateButtonBackground(buttonId, status) {
+    boolArray[buttonId-1] = status
+    const button = document.getElementById(buttonId);
+    if (status) {
+        button.style.backgroundColor = 'green'; // true -> 초록색
+    } else {
+        button.style.backgroundColor = 'red'; // false -> 빨간색
+    }
+}
+
+function subscribeToButtonTopics() {
+    for (let i = 1; i <= 8; i++) {
+        const topicName = `/buttons/${i}`;
+        
+        const buttonTopic = new ROSLIB.Topic({
+            ros: ros,
+            name: topicName,
+            messageType: 'std_msgs/Bool'
+        });
+
+        buttonTopic.subscribe(function(message) {
+            updateButtonBackground(i.toString(), message.data);
+        });
+    }
+}
+
+
 
 // function publishControllerData(axesData, buttonsData) {
 //     if (controllerPublisher) {
