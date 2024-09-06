@@ -14,7 +14,7 @@ let cmdVelSubscriber;
 let rokaStatusSubscriber;
 let northStatusSubscriber;
 
-let boolArray = [false, false, false, false, false, false, false, false];
+let boolArray = [false, false, false, false, false, false, false, false, false, false];
 
 const joyDeadZone = 0.09
 
@@ -73,7 +73,7 @@ function init_ros() {
         }, 1000);
 
         initializeRosComponents();
-        subscribeArmyStatusTopics();
+        // subscribeArmyStatusTopics();
     });
 
     ros.on('error', function(error) {
@@ -323,14 +323,14 @@ function updateButtonBackground(buttonId, status) {
     boolArray[buttonId-1] = status
     const button = document.getElementById(buttonId);
     if (status) {
-        button.style.backgroundColor = 'green'; // true -> 초록색
+        button.style.backgroundColor = 'green'; 
     } else {
-        button.style.backgroundColor = 'red'; // false -> 빨간색
+        button.style.backgroundColor = 'red';
     }
 }
 
 function subscribeToButtonTopics() {
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 10; i++) {
         const topicName = `/buttons/data${i}`;
         
         const buttonTopic = new ROSLIB.Topic({
